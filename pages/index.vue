@@ -1,16 +1,42 @@
 <template>
-    <div>
-        <h1 class="text-[50px] font-[600] text-gray-700 py-2">Home Page</h1>
-        <p class="text-xl py-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, consequuntur qui quidem ipsa est asperiores nemo laboriosam ad delectus quos.</p>
-
-        <p class="text-xl py-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Eligendi quo nesciunt distinctio maxime magnam minima, odit ratione consequuntur molestiae vitae voluptas reiciendis laudantium vero perferendis! Dolore, reiciendis mollitia ipsum dolor corrupti quasi numquam nulla. Beatae, neque itaque illo quisquam aliquid sit nisi quidem, voluptates, voluptatum obcaecati id sapiente tenetur iste!</p>
+  <div class="flex gap-[20px] items-center justify-between p-[30px]  border-b-4 border-b-gray-500">
+    <div class="space-y-4">
+        <h1 class="text-5xl text-gray-800 font-bold">Nuxt App - Discover Your Next Favorite Find!</h1>
+        <p class="text-2xl text-gray-600">Explore a world of unique products, handpicked just for you. </p>
     </div>
+    <div>
+        <img src="../assets/shopping.jpg" alt="shopping image" class="w-[800px] rounded" >
+    </div>
+  </div>
+  
+  <div class="w-[90%] mx-auto my-[30px]">
+    <div class="grid grid-cols-3 gap-5">
+      <div v-for="product in products" :key="product.id">
+        <ProductCard :product="product" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-    
+const products = ref([]);
+
+const fetchProducts = async () => {
+  const cachedProducts = localStorage.getItem("products");
+  if (cachedProducts) {
+    products.value = JSON.parse(cachedProducts);
+    return;
+  }
+
+  const response = await fetch("https://fakestoreapi.com/products");
+  const data = await response.json();
+  products.value = data;
+  localStorage.setItem("products", JSON.stringify(data));
+};
+
+onMounted(() => {
+  fetchProducts();
+});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
