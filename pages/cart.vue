@@ -9,15 +9,15 @@
                         <div class="w-28 h-28 max-sm:w-24 max-sm:h-24 shrink-0">
                             <img :src='cartProduct.image' class="w-full h-full object-contain" />
                         </div>
-
                         <div class="flex flex-col gap-4">
                             <div>
                                 <h3 class="text-sm sm:text-base font-bold text-gray-800">{{ cartProduct.title }}</h3>
                             </div>
 
                             <div class="mt-auto flex items-center gap-3">
-                                <button type="button"
-                                    class="flex items-center justify-center w-5 h-5 bg-gray-400 outline-none rounded-full">
+                                <button type="button" @click="decrementProduct(cartProduct)"
+                                    class=" flex items-center justify-center w-5 h-5 bg-gray-400 outline-none
+                                    rounded-full">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-2 fill-white"
                                         viewBox="0 0 124 124">
                                         <path
@@ -26,7 +26,7 @@
                                     </svg>
                                 </button>
                                 <span class="font-bold text-sm leading-[18px]">{{ cartProduct.qty }}</span>
-                                <button type="button"
+                                <button type="button" @click="incrementProduct(cartProduct)"
                                     class="flex items-center justify-center w-5 h-5 bg-gray-800 outline-none rounded-full">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-2 fill-white" viewBox="0 0 42 42">
                                         <path
@@ -39,14 +39,6 @@
                     </div>
                     <div class="ml-auto flex flex-col">
                         <div class="flex items-start gap-4 justify-end">
-                            <!-- <svg xmlns="http://www.w3.org/2000/svg"
-                                class="w-4 h-4 cursor-pointer fill-gray-400 hover:fill-pink-600 inline-block"
-                                viewBox="0 0 64 64" @click="addToWishList(cartProduct)">
-                                <path
-                                    d="M45.5 4A18.53 18.53 0 0 0 32 9.86 18.5 18.5 0 0 0 0 22.5C0 40.92 29.71 59 31 59.71a2 2 0 0 0 2.06 0C34.29 59 64 40.92 64 22.5A18.52 18.52 0 0 0 45.5 4ZM32 55.64C26.83 52.34 4 36.92 4 22.5a14.5 14.5 0 0 1 26.36-8.33 2 2 0 0 0 3.27 0A14.5 14.5 0 0 1 60 22.5c0 14.41-22.83 29.83-28 33.14Z"
-                                    data-original="#000000"></path>
-                            </svg> -->
-
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="w-4 h-4 cursor-pointer fill-gray-400 hover:fill-pink-600 inline-block"
                                 viewBox="0 0 64 64"
@@ -59,7 +51,7 @@
 
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 class="w-4 h-4 cursor-pointer fill-gray-400 hover:fill-red-600 inline-block"
-                                viewBox="0 0 24 24" @click="removeFromCart(cartProduct)">
+                                viewBox="0 0 24 24" @click="handleRemoveFromCart(cartProduct)">
                                 <path
                                     d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
                                     data-original="#000000"></path>
@@ -69,19 +61,19 @@
 
 
                         </div>
-                        <h3 class="text-sm sm:text-base font-bold text-gray-800 mt-auto">${{ cartProduct.price }}</h3>
+                        <h3 class="text-sm sm:text-base font-bold text-gray-800 mt-auto">${{ cartProduct.totalPrice }}
+                        </h3>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-md px-4 py-6 h-max shadow-[0_2px_12px_-3px_rgba(61,63,68,0.3)]">
                 <ul class="text-gray-800 space-y-4">
-                    <li class="flex flex-wrap gap-4 text-sm">Subtotal <span class="ml-auto font-bold">$200.00</span>
+                    <li class="flex flex-wrap gap-4 text-sm">Subtotal <span class="ml-auto font-bold">$ {{itemsPrice}}</span>
                     </li>
-                    <li class="flex flex-wrap gap-4 text-sm">Shipping <span class="ml-auto font-bold">$2.00</span></li>
-                    <li class="flex flex-wrap gap-4 text-sm">Tax <span class="ml-auto font-bold">$4.00</span></li>
+                    <li class="flex flex-wrap gap-4 text-sm">Shipping <span class="ml-auto font-bold">$ {{shippingPrice}}</span></li>
                     <hr class="border-gray-300" />
-                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total <span class="ml-auto">$206.00</span></li>
+                    <li class="flex flex-wrap gap-4 text-sm font-bold">Total <span class="ml-auto">$ {{ totalPrice }}</span></li>
                 </ul>
 
                 <div class="mt-8 space-y-2">
@@ -98,9 +90,54 @@
 </template>
 
 <script setup>
-const cartProducts = ref(JSON.parse(localStorage.getItem('cart')) || []);
+import { ref, onMounted, computed } from 'vue';
 
-const { addToWishList, removeFromWishlist, removeFromCart } = useUtils();
+const cartProducts = ref([]);
+const shippingPrice = ref(60);
+
+const loadCartProduct = () => {
+    const items = JSON.parse(localStorage.getItem('cart')) || [];
+    cartProducts.value = items;
+}
+
+const { addToWishList, removeFromWishlist, removeFromCart, updateCartData } = useUtils();
+
+const handleRemoveFromCart = (product) => {
+    removeFromCart(product);
+    cartProducts.value = cartProducts.value.filter(item => item.id !== product.id);
+}
+
+const incrementProduct = (product) => {
+    const cartProduct = cartProducts.value.find(item => item.id === product.id)
+    cartProduct.qty = cartProduct.qty+1;
+    cartProduct.totalPrice = cartProduct.price * cartProduct.qty;
+    updateCartData(cartProducts.value);
+}
+
+const decrementProduct = (product) => {
+    const cartProduct = cartProducts.value.find(item => item.id === product.id)
+    if(cartProduct.qty - 1 > 0 ){
+        cartProduct.qty = cartProduct.qty - 1;
+        cartProduct.totalPrice = cartProduct.price * cartProduct.qty;
+        updateCartData(cartProducts.value);
+    }
+    else{
+        removeFromCart(product);
+        cartProducts.value = cartProducts.value.filter(item => item.id !== product.id);
+    }
+}
+
+const itemsPrice = computed(() => {
+    return cartProducts.value.reduce((current, product) => current + product.totalPrice, 0).toFixed(2);
+});
+
+const totalPrice = computed(() => {
+    return (parseFloat(itemsPrice.value) + shippingPrice.value).toFixed(2);
+});
+
+onMounted(() => {
+    loadCartProduct();
+});
 
 </script>
 

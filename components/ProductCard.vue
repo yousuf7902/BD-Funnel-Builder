@@ -9,7 +9,7 @@
         @click="addToCartHandler(product)">
         Add to cart
       </button>
-      <button @click="product.wishlist ? removeFromWishlist(product) : addToWishList(product)">
+      <button @click="product.wishlist ? emitRemoveWishlist(product) : addToWishList(product)">
         <i class="material-icons text-white text-4xl bg-gray-500 font-bold p-1 rounded-lg">
           {{ product.wishlist ? 'favorite' : 'favorite_border' }}
         </i>
@@ -28,6 +28,12 @@ const props = defineProps({
 })
 
 const { addToCartHandler, addToWishList, removeFromWishlist } = useUtils();
+
+const emit = defineEmits(['removeWishList']);
+
+const emitRemoveWishlist = (product) => {
+  emit('removeWishList', toRaw(product));
+};
 
 </script>
 

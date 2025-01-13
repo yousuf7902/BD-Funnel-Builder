@@ -25,7 +25,6 @@ export const useUtils = () => {
     };
 
     const addToWishList = (item) => {
-        console.log(item)
        let wishItems = JSON.parse(localStorage.getItem('wishlist')) || [];
 
        const exist = wishItems.find((product) => product.id === item.id);
@@ -58,11 +57,16 @@ export const useUtils = () => {
         localStorage.setItem('cart', JSON.stringify(updateCartItems));
     }
 
+    const updateCartData = (updatedCart) => {
+           localStorage.setItem('cart', JSON.stringify(updatedCart));
+    }
+
     return {
         addToCartHandler,
         tempCartLength,
         addToWishList,
         removeFromWishlist,
-        removeFromCart
+        removeFromCart,
+        updateCartData
     }
 }
